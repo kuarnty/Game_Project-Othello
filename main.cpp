@@ -18,8 +18,11 @@
 // time
 #pragma comment(lib, "winmm")
 
+#include "Scene.h"
+#include "GameState.h"
 
-#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
+
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p) = NULL; } }
 
 // mouse
 #define DIMOUSE_LEFTBUTTON		0
@@ -30,6 +33,12 @@
 #define DIMOUSE_6BUTTON			5
 #define DIMOUSE_7BUTTON			6
 #define DIMOUSE_8BUTTON			7
+
+#define WINDOW_WIDTH	1280
+#define WINDOW_HEIGHT	720
+
+#define CLASS_NAME	L"Othello"
+#define WINDOW_NAME	L"Othello Game"
 
 
 HRESULT LoadBitmapFromFile(ID2D1RenderTarget* pRenderTarget, IWICImagingFactory* pIWICFactory, PCWSTR uri, UINT destinationWidth, UINT destinationHeight, ID2D1Bitmap** ppBitmap);
@@ -47,6 +56,14 @@ private:
 
 	void DiscardDeviceResource();
 
+	// drawing(render) scenes
+	void DrawTitleScene();
+	void DrawSettingScene();
+	void DrawNewGameScene();
+	void DrawGameScene();
+	void DrawPauseUI();
+	void DrawFinishUI();
+
 	// window
 	void OnResize();
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -56,7 +73,6 @@ public:
 	HRESULT Initialize(HINSTANCE hInstance);
 
 	// draw
-	// discard device resources
 	bool OnRender(float timeDelta);
 
 private:
@@ -67,16 +83,17 @@ private:
 	ID2D1Factory* pD2DFactory;
 	ID2D1HwndRenderTarget* pRenderTarget;
 
+	// text
+	IDWriteFactory* pDWriteFactory;
+	IDWriteTextFormat* pTextFormat;
+
 	// brushes
 	ID2D1SolidColorBrush* pBlackBrush;
+	ID2D1SolidColorBrush* pTranslucentBrush;
 
 	// geometries
 	D2D1_ELLIPSE ellipse;
 	ID2D1EllipseGeometry* pEllipseGeometry;
-
-	// text
-	IDWriteFactory* pDWriteFactory;
-	IDWriteTextFormat* pTextFormat;
 
 	// bitmap
 	IWICImagingFactory* pWICFactory;
@@ -94,6 +111,7 @@ Othello::Othello() :
 	pD2DFactory(NULL),
 	pRenderTarget(NULL),
 	pBlackBrush(NULL),
+	pTranslucentBrush(NULL),
 	pEllipseGeometry(NULL),
 	pDWriteFactory(NULL),
 	pTextFormat(NULL),
@@ -200,6 +218,8 @@ HRESULT Othello::CreateDeviceResource()
 #pragma region Create Brushes
 
 	hr = pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black, 1.f), &pBlackBrush);
+	if (FAILED(hr)) return hr;	
+	hr = pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black, 0.5f), &pTranslucentBrush);
 	if (FAILED(hr)) return hr;
 
 #pragma endregion
@@ -220,6 +240,7 @@ void Othello::DiscardDeviceResource()
 	SAFE_RELEASE(pRenderTarget);
 	// brushes
 	SAFE_RELEASE(pBlackBrush);
+	SAFE_RELEASE(pTranslucentBrush);
 
 	// bitmaps
 	SAFE_RELEASE(pBitmap);
@@ -238,12 +259,14 @@ bool Othello::OnRender(float timeDelta)
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
-	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(D2D1::SizeF(100, 100)));
-	pRenderTarget->DrawEllipse(ellipse, pBlackBrush);
+	DrawTitleScene();
 
-	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-	const WCHAR text[] = L"Test";
-	pRenderTarget->DrawText(text, ARRAYSIZE(text) - 1, pTextFormat, D2D1::RectF(20, 20, 60, 40), pBlackBrush);
+	//pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(D2D1::SizeF(100, 100)));
+	//pRenderTarget->DrawEllipse(ellipse, pBlackBrush);
+
+	//pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	//const WCHAR text[] = L"Test";
+	//pRenderTarget->DrawText(text, ARRAYSIZE(text) - 1, pTextFormat, D2D1::RectF(20, 20, 60, 40), pBlackBrush);
 
 #pragma region Physics
 	//
@@ -298,6 +321,111 @@ void Othello::OnResize()
 	D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
 	pRenderTarget->Resize(size);
 }
+
+#pragma region Scene Drawings
+
+void Othello::DrawTitleScene()
+{
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::ForestGreen));
+	
+	// draw wallpaper
+
+	// draw title text
+
+	// draw "New Game" button
+
+	// draw "Setting" button
+
+	// draw "Exit" button
+}
+
+void Othello::DrawSettingScene()
+{
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+	// draw a horizontal line
+
+	// draw return button
+
+	// draw "Sound", "Display" button
+
+	// if "Sound" selected,
+	// draw sound settings
+
+	// else if "Display" selected,
+	// draw display settings
+}
+
+void Othello::DrawNewGameScene()
+{
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+	// draw "Start a new game" text
+
+	// draw time limit settings
+
+	// draw black settings
+
+	// draw white settings
+
+	// draw "Start!" button
+}
+
+void Othello::DrawGameScene()
+{
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+	// draw wallpaper
+	
+	// draw gameboard
+
+	// draw disks
+
+	// draw scores and turn
+
+	// draw pause button
+
+	// if "Time Limit" is set, draw left time
+}
+
+void Othello::DrawPauseUI()
+{
+	DrawGameScene();
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+
+	RECT rc;
+	GetClientRect(hwnd, &rc);
+
+	D2D1_RECT_F rect = D2D1::RectF(rc.right - rc.left, rc.bottom - rc.top);
+
+	pRenderTarget->FillRectangle(rect, pTranslucentBrush);
+
+	// draw blur/opacity over the background scene
+
+	// draw outline with background
+
+	// draw "Continue", "New Game", "Setting", "Exit" buttons
+}
+
+void Othello::DrawFinishUI()
+{
+	DrawGameScene();
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+
+	RECT rc;
+	GetClientRect(hwnd, &rc);
+
+	D2D1_RECT_F rect = D2D1::RectF(rc.right - rc.left, rc.bottom - rc.top);
+
+	pRenderTarget->FillRectangle(rect, pTranslucentBrush);
+
+	// draw winner, scores
+	// draw "New Game", "Exit" buttons
+}
+
+#pragma endregion
 
 #pragma region Windows
 
@@ -357,10 +485,10 @@ HRESULT Othello::Initialize(HINSTANCE hInstance)
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = sizeof(LONG_PTR);
 	wcex.hInstance = hInstance;
-	wcex.lpszClassName = L"DemoApp";
+	wcex.lpszClassName = L"Othello";
 	RegisterClassEx(&wcex);
 
-	hwnd = CreateWindow(L"DemoApp", L"Direct2D Application", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, NULL, NULL, hInstance, this);
+	hwnd = CreateWindow(L"Othello", L"Othello Game", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT, NULL, NULL, hInstance, this);
 	hr = hwnd ? S_OK : E_FAIL;
 	if (FAILED(hr)) return hr;
 
@@ -404,6 +532,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpC
 				float timeDelta = (float)((double)(CurrentTime.QuadPart - nPrevTime.QuadPart) / (double)(nFrequency.QuadPart));
 				nPrevTime = CurrentTime;
 
+				GameState::Update(timeDelta);
 				if (!app.OnRender(timeDelta))
 				{
 					break;
